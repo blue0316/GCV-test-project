@@ -1,38 +1,137 @@
-.App {
+body {
+  margin: 0;
+}
+
+.main {
+  display: flex;
+  justify-content: center;
+  font-family: sans-serif;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+  margin: 0 8px;
+  font-size: 24px;
+  border: 2px #dedeaa solid;
+  border-radius: 8px;
+  background: #fef289;
+  text-transform: capitalize;
+  transition: all .3s;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+button:hover {
+  background-color: #dedeaa;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+figure {
+  margin: 0;
+}
+
+.container {
+  width: 1200px;
+}
+
+.header {
+  padding: 4px 0 16px;
+  margin-bottom: 24px;
+  font-size: 24px;
+  background-color: #ccc;
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.main-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+}
+
+.sidebar {
+  width: 320px
+}
+
+.image-review-wrapper {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  height: 540px;
+  width: 540px;
+  border: 1px #ccc solid;
 }
 
-.App-link {
-  color: #61dafb;
+.section-title {
+  width: 100%;
+  font-size: 32px;
+  text-align: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.safe-status {
+  display: flex;
+  flex-wrap: wrap;
+  width: 540px;
+  margin-top: 32px;
+}
+
+.safe-status-item {
+  flex-basis: 50%;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.status-very_unlikely span {
+  color: green;
+}
+
+.status-unlikely span {
+  color: yellowgreen
+}
+
+.status-possible span {
+  color: yellow;
+}
+.status-likely span {
+  color: orange
+}
+
+.status-very_likely span {
+  color: red
+}
+
+.available-image span {
+  color: green
+}
+
+.unavailable-image span {
+  color: red
+}
+
+.loading-overlay {
+  display: flex;
+  position: fixed;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  font-size: 32px;
+  background-color: #ccc;
+  opacity: 0.6;
+}
+
+.label-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  line-height: 2;
 }
