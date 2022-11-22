@@ -135,3 +135,19 @@ figure {
   width: 100%;
   line-height: 2;
 }
+
+.status-list {
+  font-size: 20px;
+}
+
+.total-result {
+  text-align: center;
+}
+
+.status-false span {
+  color: red;
+}
+
+.status-true span {
+  color: blue;
+}

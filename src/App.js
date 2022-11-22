@@ -1,6 +1,24 @@
 import React, { useRef, useState, useEffect } from "react";
-import logo from "./logo.svg";
+import Modal from 'react-modal';
 import "./App.css";
+
+const customStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    minWidth: '480px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContentCenter: 'center',
+  },
+};
+
+Modal.setAppElement('#root');
 
 function App() {
   const fileInputRef = useRef();
@@ -16,9 +34,26 @@ function App() {
     spoof: "Not_Detected",
     violence: "Not_Detected",
   });
+
+  const [imageStatus, setImageStatus] = useState({
+    multiFaces: true,
+    noFrontFace: true,
+    detectWeapon: true,
+    detectBlurry: true,
+    nudeCheck: true
+  });
   // const [webDetectionAnno, setWebDetectionAnno] = useState([]);
 
   const [loading, setLoading] = useState(false);
+
+  // Variable and status for modal.
+  let subtitle;
+  const [modalIsOpen, setIsOpen] = useState(false);
+
+  const googleCloud = {
+    apiKey: "AIzaSyAzbqOaEsx9nQTfM3LU_acJmTWpdIsxQkM",
+    api: "https://vision.googleapis.com/v1/images:annotate?key=",
+  };
 
   useEffect(() => {
     if (image) {
@@ -32,10 +67,65 @@ function App() {
     }
   }, [image]);
 
-  const googleCloud = {
-    apiKey: "AIzaSyAzbqOaEsx9nQTfM3LU_acJmTWpdIsxQkM",
-    api: "https://vision.googleapis.com/v1/images:annotate?key=",
-  };
+  const imageDetection = (data) => {
+    let tmp = {
+      multiFaces: true,
+      noFrontFace: true,
+      detectWeapon: true,
+      detectBlurry: true,
+      nudeCheck: true
+    };
+
+    let dataFaceAnno = data.faceAnnotations ? data.faceAnnotations : [];
+    let dataLabelAnno = data.labelAnnotations ? data.labelAnnotations : [];
+    let dataSafeSearchAnno = data.safeSearchAnnotation ? data.safeSearchAnnotation : {
+      adult: "VERY_UNLIKELY",
+      medical: "VERY_UNLIKELY",
+      racy: "VERY_UNLIKELY",
+      spoof: "VERY_UNLIKELY",
+      violence: "VERY_UNLIKELY",
+    }
+    // Multiple Face Detection
+    if (dataFaceAnno.length !== 1) {
+      tmp.multiFaces = false;
+    }
+
+    let labelAnnoStr = "";
+    dataLabelAnno.forEach(label => (labelAnnoStr += (label.description + " ")));
+
+    // Not Front Face Detection
+    const facePartials = [
+      'chin',
+      'eye',
+      'nose',
+      'mouse',
+      'lip',
+      'cheek'
+    ];
+    facePartials.forEach(partial => {
+      if (tmp.noFrontFace && labelAnnoStr.includes(partial)) tmp.noFrontFace = false;
+    });
+
+    // Weapon Detection
+    if (labelAnnoStr.includes("gun") || labelAnnoStr.includes("knife")) tmp.detectWeapon = false;
+
+    // Blurry Face Detection
+    dataFaceAnno.forEach(face => {
+      if (face.blurredLikelihood !== "VERY_UNLIKELY" && face.blurredLikelihood !== "UNLIKELY" && tmp.detectBlurry) {
+        tmp.detectBlurry = false;
+      }
+    });
+
+    // Adult Image Check
+    if ((dataSafeSearchAnno.adult !== "VERY_UNLIKELY" && data.safeSearchAnnotation.adult !== "UNLIKELY") && tmp.nudeCheck) {
+      tmp.nudeCheck = false;
+    }
+
+    console.log(tmp)
+    setImageStatus(tmp);
+
+    openModal();
+  }
 
   async function callGoogleVIsionApi(base64) {
     setLoading(true);
@@ -53,18 +143,20 @@ function App() {
             },
             features: [
               { type: "FACE_DETECTION", maxResults: 10 },
-              { type: "LABEL_DETECTION", maxResults: 10 },
+              { type: "LABEL_DETECTION", maxResults: 20 },
               { type: "SAFE_SEARCH_DETECTION", maxResults: 10 },
               { type: "WEB_DETECTION", maxResults: 10 },
             ],
+            imageContext: {
+              faceRecognitionParams: {
+                celebritySet: ["builtin/default"]
+              },
+            }
           },
         ],
       }),
-    })
-      .then((res) => res.json())
+    }).then((res) => res.json())
       .then((data) => {
-        console.log("Response");
-        console.log(data);
         setFaceAnno(
           data.responses[0].faceAnnotations
             ? data.responses[0].faceAnnotations
@@ -87,6 +179,7 @@ function App() {
               }
         );
         // setWebDetectionAnno(data.responses[0].webDetection ? data.responses[0].webDetection : []);
+        imageDetection(data.responses[0]);
 
         setLoading(false);
       })
@@ -95,6 +188,19 @@ function App() {
         console.log("Error");
         console.log("error : ", err);
       });
+  }
+
+  const openModal = () => {
+    setIsOpen(true);
+  }
+
+  const afterOpenModal = () => {
+    // references are now sync'd and can be accessed.
+    subtitle.style.color = '#f00';
+  }
+
+  const closeModal = () => {
+    setIsOpen(false);
   }
 
   return (
@@ -116,7 +222,6 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  console.log(preview);
                   callGoogleVIsionApi(preview);
                 }}
               >
@@ -205,34 +310,34 @@ function App() {
                   <div key={`face-${index}`}>
                     <h4>Face {index + 1}</h4>
                     <p
-                      className={`status-${faceAnno[0].angerLikelihood.toLowerCase()}`}
+                      className={`status-${face.angerLikelihood.toLowerCase()}`}
                     >
-                      Anger: <span>{faceAnno[0].angerLikelihood}</span>
+                      Anger: <span>{face.angerLikelihood}</span>
                     </p>
                     <p
-                      className={`status-${faceAnno[0].blurredLikelihood.toLowerCase()}`}
+                      className={`status-${face.blurredLikelihood.toLowerCase()}`}
                     >
-                      Blurred: <span>{faceAnno[0].blurredLikelihood}</span>
+                      Blurred: <span>{face.blurredLikelihood}</span>
                     </p>
                     <p
-                      className={`status-${faceAnno[0].headwearLikelihood.toLowerCase()}`}
+                      className={`status-${face.headwearLikelihood.toLowerCase()}`}
                     >
-                      Headwear: <span>{faceAnno[0].headwearLikelihood}</span>
+                      Headwear: <span>{face.headwearLikelihood}</span>
                     </p>
                     <p
-                      className={`status-${faceAnno[0].joyLikelihood.toLowerCase()}`}
+                      className={`status-${face.joyLikelihood.toLowerCase()}`}
                     >
-                      Joy: <span>{faceAnno[0].joyLikelihood}</span>
+                      Joy: <span>{face.joyLikelihood}</span>
                     </p>
                     <p
-                      className={`status-${faceAnno[0].sorrowLikelihood.toLowerCase()}`}
+                      className={`status-${face.sorrowLikelihood.toLowerCase()}`}
                     >
-                      Sorrow: <span>{faceAnno[0].sorrowLikelihood}</span>
+                      Sorrow: <span>{face.sorrowLikelihood}</span>
                     </p>
                     <p
-                      className={`status-${faceAnno[0].surpriseLikelihood.toLowerCase()}`}
+                      className={`status-${face.surpriseLikelihood.toLowerCase()}`}
                     >
-                      Surprise: <span>{faceAnno[0].surpriseLikelihood}</span>
+                      Surprise: <span>{face.surpriseLikelihood}</span>
                     </p>
                   </div>
                 ))
@@ -268,6 +373,26 @@ function App() {
           <></>
         )}
       </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onAfterOpen={afterOpenModal}
+        onRequestClose={closeModal}
+        style={customStyles}
+        contentLabel="Example Modal"
+      >
+        <h2 ref={(_subtitle) => (subtitle = _subtitle)}>Image Detection Result</h2>
+        <button onClick={closeModal}>close</button>
+        <div>
+          <ul className="status-list">
+            <li className={`status-${imageStatus.multiFaces.toString()}`}>Face Detection: <span>{ imageStatus.multiFaces ? 'true' : 'false' }</span></li>
+            <li className={`status-${imageStatus.noFrontFace.toString()}`}>Not Front Face Detection: <span>{ imageStatus.noFrontFace ? 'true' : 'false' }</span></li>
+            <li className={`status-${imageStatus.detectWeapon.toString()}`}>Weapon Detection: <span>{ imageStatus.detectWeapon ? 'true' : 'false' }</span></li>
+            <li className={`status-${imageStatus.detectBlurry.toString()}`}>Blurry Image Detection: <span>{ imageStatus.detectBlurry ? 'true' : 'false' }</span></li>
+            <li className={`status-${imageStatus.nudeCheck.toString()}`}>Nude Image Detection: <span>{ imageStatus.nudeCheck ? 'true' : 'false' }</span></li>
+          </ul>
+          <h2 className={`total-result status-${imageStatus.multiFaces && imageStatus.noFrontFace && imageStatus.detectWeapon && imageStatus.detectBlurry && imageStatus.nudeCheck.toString()}`}>Result: <span>{ imageStatus.multiFaces && imageStatus.noFrontFace && imageStatus.detectWeapon && imageStatus.detectBlurry && imageStatus.nudeCheck  ? 'true' : 'false' }</span></h2>
+        </div>
+      </Modal>
     </main>
   );
 }
