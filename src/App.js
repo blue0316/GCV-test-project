@@ -91,7 +91,7 @@ function App() {
     }
 
     let labelAnnoStr = "";
-    dataLabelAnno.forEach(label => (labelAnnoStr += (label.description + " ")));
+    dataLabelAnno.forEach(label => (labelAnnoStr += (label.description.toLowerCase() + " ")));
 
     // Not Front Face Detection
     const facePartials = [
@@ -102,8 +102,10 @@ function App() {
       'lip',
       'cheek'
     ];
+    console.log(labelAnnoStr)
     for (let i=0; i < facePartials.length; i++) {
       if (tmp.noFrontFace && labelAnnoStr.includes(facePartials[i])) {
+        console.log(facePartials[i])
         break;
       }
       if (i + 1 === facePartials.length) tmp.noFrontFace = false;
