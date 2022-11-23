@@ -102,8 +102,9 @@ function App() {
       'lip',
       'cheek'
     ];
-    facePartials.forEach(partial => {
+    facePartials.forEach((partial, index) => {
       if (tmp.noFrontFace && labelAnnoStr.includes(partial)) tmp.noFrontFace = false;
+      if (index + 1 === facePartials.length) tmp.noFrontFace = false;
     });
 
     // Weapon Detection
