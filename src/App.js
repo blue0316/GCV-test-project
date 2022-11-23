@@ -103,7 +103,7 @@ function App() {
       'cheek'
     ];
     facePartials.forEach((partial, index) => {
-      if (tmp.noFrontFace && labelAnnoStr.includes(partial)) tmp.noFrontFace = false;
+      if (tmp.noFrontFace && labelAnnoStr.includes(partial)) break;
       if (index + 1 === facePartials.length) tmp.noFrontFace = false;
     });
 
