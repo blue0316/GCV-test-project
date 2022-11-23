@@ -102,10 +102,12 @@ function App() {
       'lip',
       'cheek'
     ];
-    facePartials.forEach((partial, index) => {
-      if (tmp.noFrontFace && labelAnnoStr.includes(partial)) break;
-      if (index + 1 === facePartials.length) tmp.noFrontFace = false;
-    });
+    for (let i=0; i < facePartials.length; i++) {
+      if (tmp.noFrontFace && labelAnnoStr.includes(facePartials[i])) {
+        break;
+      }
+      if (i + 1 === facePartials.length) tmp.noFrontFace = false;
+    }
 
     // Weapon Detection
     if (labelAnnoStr.includes("gun") || labelAnnoStr.includes("knife")) tmp.detectWeapon = false;
